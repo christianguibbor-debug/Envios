@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0084e3" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Envía Logística</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: #f2f5f9; color: #1e293b; padding-bottom: 75px; user-select: none; }
+    
+    /* Header estilo Envía */
+    .header { background: #0084e3; color: white; padding: 18px 16px 26px; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 19px; font-weight: 700; line-height: 1.2; text-transform: uppercase; }
+    .badge-logo { background: #ff6b00; color: white; font-weight: 900; font-size: 14px; padding: 10px 14px; border-radius: 50px; box-shadow: 0 3px 6px rgba(0,0,0,0.2); letter-spacing: 0.5px; }
+
+    /* Sub-tabs Ruta (Moto / Reloj) */
+    .sub-tabs { display: flex; background: white; margin: -14px 12px 12px; border-radius: 12px 12px 0 0; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+    .sub-tab { flex: 1; text-align: center; padding: 12px; font-size: 20px; cursor: pointer; border-bottom: 4px solid transparent; transition: 0.2s; }
+    .sub-tab.active { border-bottom-color: #ff6b00; background: #fffaf5; }
+
+    /* Contenedores */
+    .container { padding: 0 12px; }
+    .card { background: white; border-radius: 12px; padding: 14px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); border-left: 5px solid #0084e3; }
+    .card-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .card-info { flex: 1; }
+    .order-id { font-weight: 800; color: #0084e3; font-size: 14px; margin-bottom: 4px; }
+    .client-name { font-weight: 700; font-size: 15px; color: #0f172a; margin-bottom: 3px; text-transform: uppercase; }
+    .client-phone { font-size: 13px; color: #475569; margin-bottom: 4px; }
+    .client-addr { font-size: 13px; color: #0077cc; font-weight: 600; line-height: 1.35; }
+    .price-tag { display: inline-block; background: #e0f2fe; color: #0369a1; font-weight: 800; font-size: 13px; padding: 3px 8px; border-radius: 6px; margin-top: 6px; }
+
+    .card-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; min-width: 95px; }
+    .status-time { font-weight: 800; color: #ff6b00; font-size: 14px; }
+    .status-text { font-size: 12px; color: #64748b; font-weight: 600; }
+    .btn-orange { background: #ff6b00; color: white; border: none; padding: 8px 14px; border-radius: 20px; font-weight: 700; font-size: 13px; cursor: pointer; width: 100%; text-align: center; text-decoration: none; display: inline-block; box-shadow: 0 2px 4px rgba(255,107,0,0.3); }
+    .btn-maps { background: #10b981; color: white; border: none; padding: 8px 12px; border-radius: 20px; font-weight: 700; font-size: 12px; cursor: pointer; width: 100%; text-align: center; text-decoration: none; display: inline-block; }
+    .btn-done { background: #0084e3; color: white; border: none; padding: 7px 12px; border-radius: 20px; font-weight: 700; font-size: 12px; cursor: pointer; width: 100%; }
+
+    /* Formularios */
+    .form-card { background: white; border-radius: 14px; padding: 16px; margin-top: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+    .form-group { margin-bottom: 12px; }
+    label { display: block; font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 5px; }
+    input, select { width: 100%; padding: 11px 12px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 15px; background: #f8fafc; }
+    input:focus, select:focus { outline: none; border-color: #0084e3; background: white; }
+
+    /* Liquidación */
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+    .stat-box { background: white; padding: 14px; border-radius: 12px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+    .stat-num { font-size: 22px; font-weight: 800; color: #0084e3; }
+    .stat-label { font-size: 12px; color: #64748b; font-weight: 600; margin-top: 4px; }
+
+    /* Bottom Nav */
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; border-top: 1px solid #e2e8f0; padding: 6px 0 8px; z-index: 100; }
+    .nav-item { flex: 1; text-align: center; color: #64748b; font-size: 11px; font-weight: 600; cursor: pointer; }
+    .nav-item.active { color: #0084e3; }
+    .nav-icon { font-size: 20px; display: block; margin-bottom: 2px; }
+
+    .hidden { display: none !important; }
+    .empty-state { text-align: center; padding: 50px 20px; color: #334155; font-size: 18px; font-weight: 700; }
+
+    /* Modal Detalle */
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: flex-end; z-index: 200; }
+    .modal-content { background: white; width: 100%; border-radius: 20px 20px 0 0; padding: 20px; max-height: 85vh; overflow-y: auto; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <div style="font-size:13px; opacity:0.9;">Hola!</div>
+      <h1 id="driverNameDisplay">CHRISTIAN ABAJ</h1>
+    </div>
+    <div class="badge-logo">ENVÍA</div>
+  </div>
+
+  <!-- VISTA 1: RUTA -->
+  <div id="view-ruta">
+    <div class="sub-tabs">
+      <div class="sub-tab active" id="tab-pendientes" onclick="switchSubTab('pendientes')">🏍️</div>
+      <div class="sub-tab" id="tab-historial" onclick="switchSubTab('historial')">🕒</div>
+    </div>
+    <div class="container" id="orders-list"></div>
+  </div>
+
+  <!-- VISTA 2: NUEVA ORDEN -->
+  <div id="view-orden" class="container hidden">
+    <div class="form-card">
+      <h2 style="font-size:17px; color:#0084e3; margin-bottom:12px;">➕ Nueva Orden de Envío</h2>
+      <div class="form-group">
+        <label>Cliente</label>
+        <input type="text" id="in-cliente" placeholder="Nombre del cliente" />
+      </div>
+      <div class="form-group">
+        <label>Teléfono</label>
+        <input type="tel" id="in-tel" placeholder="Ej. 55123456" />
+      </div>
+      <div class="form-group">
+        <label>Zona / Sector</label>
+        <select id="in-zona" onchange="actualizarTarifaAuto()">
+          <option value="Zona 19 / La Florida">Zona 19 / La Florida</option>
+          <option value="Mixco / Montserrat / Molino">Mixco / Montserrat / Molino</option>
+          <option value="Periférico / Zona 7 / Zona 11">Periférico / Zona 7 / Zona 11</option>
+          <option value="Zona 1 / Centro Histórico">Zona 1 / Centro Histórico</option>
+          <option value="Zona 12 / Reformita / Petapa">Zona 12 / Reformita / Petapa</option>
+          <option value="Zona 9 / Zona 10 / Zona 13">Zona 9 / Zona 10 / Zona 13</option>
+          <option value="Villa Nueva / San Cristóbal">Villa Nueva / San Cristóbal</option>
+          <option value="Otra Zona">Otra Zona</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Dirección Exacta (Para Google Maps)</label>
+        <input type="text" id="in-dir" placeholder="Ej. 11 Calle 31-62 Zona 7, Guatemala" />
+      </div>
+      <div style="display:flex; gap:10px;">
+        <div class="form-group" style="flex:1;">
+          <label>Tarifa Envío (Q)</label>
+          <input type="number" id="in-tarifa" value="25" />
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label>Tipo de Pago</label>
+          <select id="in-pago">
+            <option value="EFECTIVO">EFECTIVO</option>
+            <option value="VISA DELIVERY">VISA DELIVERY</option>
+            <option value="TRANSFERENCIA">TRANSFERENCIA</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-orange" style="padding:13px; font-size:15px; margin-top:6px;" onclick="guardarOrden()">GUARDAR EN RUTA</button>
+    </div>
+  </div>
+
+  <!-- VISTA 3: LIQUIDAR -->
+  <div id="view-liquidar" class="container hidden">
+    <div class="stat-grid">
+      <div class="stat-box">
+        <div class="stat-num" id="liq-total">Q0</div>
+        <div class="stat-label">Total Generado</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="liq-entregados">0</div>
+        <div class="stat-label">Entregas Listas</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" style="color:#10b981;" id="liq-efectivo">Q0</div>
+        <div class="stat-label">En Efectivo</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" style="color:#ff6b00;" id="liq-digital">Q0</div>
+        <div class="stat-label">Tarjeta / Transf.</div>
+      </div>
+    </div>
+    <div class="form-card" style="text-align:center;">
+      <p style="font-size:13px; color:#64748b; margin-bottom:12px;">Al cerrar tu turno puedes reiniciar el historial del día.</p>
+      <button class="btn-orange" style="background:#ef4444;" onclick="limpiarHistorial()">Reiniciar Caja del Día</button>
+    </div>
+  </div>
+
+  <!-- VISTA 4: PERFIL / TARIFAS -->
+  <div id="view-perfil" class="container hidden">
+    <div class="form-card">
+      <h2 style="font-size:17px; color:#0084e3; margin-bottom:12px;">⚙️ Configuración y Tarifas</h2>
+      <div class="form-group">
+        <label>Tu Nombre en Pantalla</label>
+        <input type="text" id="cfg-nombre" value="CHRISTIAN ABAJ" onchange="guardarConfig()" />
+      </div>
+      <div id="tarifas-editor"></div>
+    </div>
+  </div>
+
+  <!-- Modal Detalle -->
+  <div id="modal-detalle" class="modal hidden" onclick="if(event.target===this) cerrarModal()">
+    <div class="modal-content" id="modal-body"></div>
+  </div>
+
+  <!-- Navegación Inferior -->
+  <div class="bottom-nav">
+    <div class="nav-item" id="nav-orden" onclick="switchView('orden')"><span class="nav-icon">➕</span>Orden</div>
+    <div class="nav-item active" id="nav-ruta" onclick="switchView('ruta')"><span class="nav-icon">🏠</span>Ruta</div>
+    <div class="nav-item" id="nav-liquidar" onclick="switchView('liquidar')"><span class="nav-icon">💲</span>Liquidar</div>
+    <div class="nav-item" id="nav-perfil" onclick="switchView('perfil')"><span class="nav-icon">👤</span>Perfil</div>
+  </div>
+
+  <script>
+    const tarifasDefault = {
+      "Zona 19 / La Florida": 20,
+      "Mixco / Montserrat / Molino": 25,
+      "Periférico / Zona 7 / Zona 11": 30,
+      "Zona 1 / Centro Histórico": 35,
+      "Zona 12 / Reformita / Petapa": 35,
+      "Zona 9 / Zona 10 / Zona 13": 35,
+      "Villa Nueva / San Cristóbal": 45,
+      "Otra Zona": 35
+    };
+
+    let tarifas = JSON.parse(localStorage.getItem('envia_tarifas')) || tarifasDefault;
+    let ordenes = JSON.parse(localStorage.getItem('envia_ordenes')) || [];
+    let nombrePiloto = localStorage.getItem('envia_piloto') || "CHRISTIAN ABAJ";
+    let subTabActual = 'pendientes';
+
+    document.getElementById('driverNameDisplay').innerText = nombrePiloto;
+    document.getElementById('cfg-nombre').value = nombrePiloto;
+
+    function actualizarTarifaAuto() {
+      const z = document.getElementById('in-zona').value;
+      document.getElementById('in-tarifa').value = tarifas[z] || 30;
+    }
+
+    function guardarOrden() {
+      const cliente = document.getElementById('in-cliente').value.trim() || "Cliente General";
+      const tel = document.getElementById('in-tel').value.trim() || "00000000";
+      const zona = document.getElementById('in-zona').value;
+      const dir = document.getElementById('in-dir').value.trim();
+      const tarifa = parseFloat(document.getElementById('in-tarifa').value) || 0;
+      const pago = document.getElementById('in-pago').value;
+
+      if (!dir) { alert("Escribe la dirección para poder abrirla en Maps."); return; }
+
+      const nueva = {
+        id: "ENV-" + Math.floor(10000 + Math.random() * 90000),
+        cliente, tel, zona, dir, tarifa, pago,
+        estado: "pendiente",
+        hora: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+      };
+
+      ordenes.unshift(nueva);
+      localStorage.setItem('envia_ordenes', JSON.stringify(ordenes));
+      
+      document.getElementById('in-cliente').value = "";
+      document.getElementById('in-tel').value = "";
+      document.getElementById('in-dir').value = "";
+      
+      switchView('ruta');
+      switchSubTab('pendientes');
+    }
+
+    function abrirMaps(direccion, zona) {
+      const query = encodeURIComponent(direccion + ", " + zona + ", Guatemala");
+      window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+    }
+
+    function marcarEntregado(id) {
+      ordenes = ordenes.map(o => o.id === id ? {...o, estado: 'entregado', horaEntrega: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} : o);
+      localStorage.setItem('envia_ordenes', JSON.stringify(ordenes));
+      renderOrdenes();
+    }
+
+    function verDetalle(id) {
+      const o = ordenes.find(x => x.id === id);
+      if (!o) return;
+      document.getElementById('modal-body').innerHTML = `
+        <h3 style="color:#0084e3; margin-bottom:10px;">Orden: ${o.id}</h3>
+        <p style="margin-bottom:6px;"><strong>Tipo de pago:</strong> <span style="color:#0084e3;">${o.pago}</span></p>
+        <p style="margin-bottom:6px;"><strong>Tarifa:</strong> Q${o.tarifa}</p>
+        <p style="margin-bottom:10px;"><strong>Dirección:</strong><br><span style="color:#0077cc;">${o.dir} (${o.zona})</span></p>
+        <div style="background:#f8fafc; padding:12px; border-radius:10px; margin-bottom:14px;">
+          <strong>Cliente:</strong> ${o.cliente}<br>
+          <strong>Teléfono:</strong> <a href="tel:${o.tel}" style="color:#0084e3; font-weight:bold;">${o.tel}</a>
+        </div>
+        <button class="btn-maps" style="padding:12px; font-size:14px; margin-bottom:8px;" onclick="abrirMaps('${o.dir.replace(/'/g, "")}', '${o.zona}')">📍 ABRIR EN GOOGLE MAPS</button>
+        <button class="btn-orange" style="background:#64748b;" onclick="cerrarModal()">Cerrar</button>
+      `;
+      document.getElementById('modal-detalle').classList.remove('hidden');
+    }
+
+    function cerrarModal() { document.getElementById('modal-detalle').classList.add('hidden'); }
+
+    function renderOrdenes() {
+      const lista = document.getElementById('orders-list');
+      const filtradas = ordenes.filter(o => subTabActual === 'pendientes' ? o.estado === 'pendiente' : o.estado === 'entregado');
+
+      if (filtradas.length === 0) {
+        lista.innerHTML = `<div class="empty-state">${subTabActual === 'pendientes' ? 'No tiene órdenes pendientes' : 'Aún no hay entregas completadas'}</div>`;
+        return;
+      }
+
+      lista.innerHTML = filtradas.map(o => `
+        <div class="card">
+          <div class="card-row">
+            <div class="card-info">
+              <div class="order-id">📋 ${o.id}</div>
+              <div class="client-name">👤 ${o.cliente}</div>
+              <div class="client-phone">📞 <a href="tel:${o.tel}" style="color:inherit; text-decoration:none;">${o.tel}</a></div>
+              <div class="client-addr">🏠 ${o.dir} (${o.zona})</div>
+              <div class="price-tag">Q${o.tarifa} • ${o.pago}</div>
+            </div>
+            <div class="card-actions">
+              <div class="status-time">${o.estado === 'pendiente' ? o.hora : o.horaEntrega}</div>
+              <div class="status-text">${o.estado === 'pendiente' ? 'En ruta' : 'Entregado'}</div>
+              <button class="btn-maps" onclick="abrirMaps('${o.dir.replace(/'/g, "")}', '${o.zona}')">📍 Maps</button>
+              <button class="btn-orange" onclick="verDetalle('${o.id}')">👁️ Ver</button>
+              ${o.estado === 'pendiente' ? `<button class="btn-done" onclick="marcarEntregado('${o.id}')">✅ Listo</button>` : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function switchSubTab(tab) {
+      subTabActual = tab;
+      document.getElementById('tab-pendientes').classList.toggle('active', tab === 'pendientes');
+      document.getElementById('tab-historial').classList.toggle('active', tab === 'historial');
+      renderOrdenes();
+    }
+
+    function switchView(view) {
+      ['ruta', 'orden', 'liquidar', 'perfil'].forEach(v => {
+        document.getElementById('view-' + v).classList.add('hidden');
+        document.getElementById('nav-' + v).classList.remove('active');
+      });
+      document.getElementById('view-' + view).classList.remove('hidden');
+      document.getElementById('nav-' + view).classList.add('active');
+
+      if (view === 'ruta') renderOrdenes();
+      if (view === 'liquidar') actualizarLiquidación();
+      if (view === 'perfil') renderPerfil();
+    }
+
+    function actualizarLiquidación() {
+      const entregadas = ordenes.filter(o => o.estado === 'entregado');
+      const total = entregadas.reduce((acc, o) => acc + o.tarifa, 0);
+      const efectivo = entregadas.filter(o => o.pago === 'EFECTIVO').reduce((acc, o) => acc + o.tarifa, 0);
+      const digital = total - efectivo;
+
+      document.getElementById('liq-total').innerText = "Q" + total;
+      document.getElementById('liq-entregados').innerText = entregadas.length;
+      document.getElementById('liq-efectivo').innerText = "Q" + efectivo;
+      document.getElementById('liq-digital').innerText = "Q" + digital;
+    }
+
+    function limpiarHistorial() {
+      if (confirm("¿Estás seguro de reiniciar la caja y limpiar el historial de entregas?")) {
+        ordenes = ordenes.filter(o => o.estado === 'pendiente');
+        localStorage.setItem('envia_ordenes', JSON.stringify(ordenes));
+        actualizarLiquidación();
+        renderOrdenes();
+        alert("Caja reiniciada con éxito.");
+      }
+    }
+
+    function guardarConfig() {
+      nombrePiloto = document.getElementById('cfg-nombre').value.trim() || "CHRISTIAN ABAJ";
+      localStorage.setItem('envia_piloto', nombrePiloto);
+      document.getElementById('driverNameDisplay').innerText = nombrePiloto;
+    }
+
+    function renderPerfil() {
+      const container = document.getElementById('tarifas-editor');
+      container.innerHTML = `<label style="margin-top:12px; margin-bottom:8px;">Tarifas por Zona (Q)</label>` +
+        Object.keys(tarifas).map(z => `
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+            <span style="font-size:13px; flex:1; color:#334155;">${z}</span>
+            <input type="number" style="width:90px; padding:6px;" value="${tarifas[z]}" onchange="cambiarTarifa('${z}', this.value)" />
+          </div>
+        `).join('');
+    }
+
+    function cambiarTarifa(zona, val) {
+      tarifas[zona] = parseFloat(val) || 0;
+      localStorage.setItem('envia_tarifas', JSON.stringify(tarifas));
+    }
+
+    // Inicializar al cargar
+    renderOrdenes();
+  </script>
+</body>
+  </html>
+  
